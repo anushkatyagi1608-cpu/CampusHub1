@@ -7,7 +7,16 @@ import jwt from "jsonwebtoken";
 
 dotenv.config();
 const app = express();
-app.use(cors({ origin: true }));
+const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173")
+  .split(",")
+  .map(origin => origin.trim())
+  .filter(Boolean);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Origin is not allowed by CORS"));
+  }
+}));
 app.use(express.json());
 
 const { MONGO_URI, JWT_SECRET, ADMIN_SETUP_KEY, PORT = 5000 } = process.env;
